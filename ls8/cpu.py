@@ -12,6 +12,8 @@ SUB = 0b10100001
 MUL = 0b10100010
 PUSH = 0b01000101
 POP = 0b01000110
+CALL = 0b01010000
+RET = 0b00010001
 
 
 class CPU:
@@ -156,7 +158,20 @@ class CPU:
                 register_num = self.ram_read(self.pc + 1)
                 self.registers[register_num] = self.ram_read(self.registers[self.SP])              
                 self.registers[self.SP] += 1
-                
+
+            elif op == CALL:
+                register_num = self.ram_read(self.pc + 1)
+                return_address = self.pc + 2
+                self.registers[self.SP] -= 1
+                self.ram_write(return_address, self.registers[self.SP])
+                self.pc = self.registers[register_num]
+                continue
+
+            elif op == RET:
+                self.pc = self.ram_read(self.registers[self.SP])
+                self.registers[self.SP] += 1
+                continue
+
             elif op == HLT:
                 sys.exit(1)
 
