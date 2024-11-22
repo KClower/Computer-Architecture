@@ -10,7 +10,8 @@ HLT = 0b00000001
 ADD = 0b10100000
 SUB = 0b10100001
 MUL = 0b10100010
-
+PUSH = 0b01000101
+POP = 0b01000110
 
 
 class CPU:
@@ -19,6 +20,8 @@ class CPU:
     def __init__(self):
         """Construct a new CPU."""
         self.registers = [0] * 8
+        self.SP = 7
+        self.registers[self.SP] = 0xF4       
         self.ram = [0] * 256
         self.pc = 0
 
@@ -33,7 +36,6 @@ class CPU:
             sys.exit(1)
 
         # For now, we've just hardcoded a program:
-
         # program = [
         #     # From print8.ls8
         #     0b10000010, # LDI R0,8  (op code 130)
@@ -142,8 +144,24 @@ class CPU:
             elif op == PRN:
                 register_num = self.ram_read(self.pc + 1)
                 print(self.registers[register_num])
+
+            elif op == PUSH:
+                self.registers[self.SP] -= 1
+                register_num = self.ram_read(self.pc + 1)                            
+                self.ram_write(self.registers[register_num], self.registers[self.SP])
+
+                print(self.ram[0xf0:0xf4])
+
+            elif op == POP:
+                register_num = self.ram_read(self.pc + 1)
+                self.registers[register_num] = self.ram_read(self.registers[self.SP])              
+                self.registers[self.SP] += 1
                 
             elif op == HLT:
+                sys.exit(1)
+
+            else:
+                print(f"Unknown instruction {op} at address {self.pc}")
                 sys.exit(1)
 
             op_len = ((op & 0b11000000) >> 6) +1
